@@ -1,4 +1,4 @@
-import { getHukamnama } from "@/sgpc-scraper-script/actions";
+import { getHukamnama } from "@/app/api/hukamnama/actions";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";

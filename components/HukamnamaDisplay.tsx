@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { getHukamnama, type HukamnamaData } from '@/sgpc-scraper-script/actions';
+import { getHukamnama, type HukamnamaData } from "@/app/api/hukamnama/actions";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
 
 export default function HukamnamaDisplay() {
   const { data, isLoading, error } = useQuery<HukamnamaData>({
-    queryKey: ['hukamnama'],
+    queryKey: ["hukamnama"],
     queryFn: getHukamnama,
   });
 
@@ -68,7 +68,10 @@ export default function HukamnamaDisplay() {
         </CardHeader>
         <CardContent className="space-y-6">
           {data.lines.map((line, index) => (
-            <div key={index} className="flex flex-col gap-2 p-4 rounded-lg hover:bg-accent/5 transition-colors border-b last:border-0">
+            <div
+              key={index}
+              className="flex flex-col gap-2 p-4 rounded-lg hover:bg-accent/5 transition-colors border-b last:border-0"
+            >
               <p className="text-lg md:text-xl text-center leading-loose font-medium text-foreground">
                 {line.gurmukhi}
               </p>
@@ -84,4 +87,3 @@ export default function HukamnamaDisplay() {
     </div>
   );
 }
-
