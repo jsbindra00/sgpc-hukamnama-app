@@ -6,6 +6,7 @@ import {createServer} from 'node:net';
 import {setTimeout as delay} from 'node:timers/promises';
 import {dependency} from './tools.mjs';
 import {fixtureServer} from './fixture-server.mjs';
+import {fixtureBridge} from './fixture-bridge.mjs';
 import {fixtures,card} from './fixtures.mjs';
 import {verifySource} from './source-invariants.mjs';
 import {seal,inventory,sha,stop} from './seal.mjs';
@@ -31,12 +32,8 @@ const options=wrangler.unstable_getMiniflareWorkerOptions(path.join(sealed.direc
 const workerName=JSON.parse(fs.readFileSync(path.join(sealed.directory,'wrangler.json'))).name;
 const sealedCompanion=sealed.files.find(file=>file.path==='worker/README.md');assert.ok(sealedCompanion,'Pinned Wrangler companion must remain in the complete sealed manifest');
 const outbound=[];
-const converted=mf.convertV4MiniflareOptions({host:'127.0.0.1',port:0,cf:false,workers:[{...explicitModules(options.workerOptions,options.main,sealed.directory+'/worker',{workerName,sealedCompanion}),outboundService:async request=>{
- const url=new URL(request.url);assert.equal(url.origin,'https://hs.sgpc.net');assert.equal(request.method,'GET');
- outbound.push({path:url.pathname,method:request.method,userAgent:request.headers.get('user-agent')});
- const response=await fetch(sideFixtures.candidate.origin+url.pathname,{method:'GET',headers:request.headers,redirect:'manual',signal:request.signal});
- return new mf.Response(response.body,{status:response.status,statusText:response.statusText,headers:response.headers});
-}},...options.externalWorkers]});
+const bridge=fixtureBridge(sideFixtures.candidate.origin,outbound);evidence.fixtureBridge=bridge.proof;
+const converted=mf.convertV4MiniflareOptions({host:'127.0.0.1',port:0,cf:false,workers:[{...explicitModules(options.workerOptions,options.main,sealed.directory+'/worker',{workerName,sealedCompanion}),outboundService:bridge.outboundService},bridge.worker,...options.externalWorkers]});
 converted.telemetry={enabled:false,deviceId:'sgpc-synthetic-ci'};
 candidate=new mf.Miniflare(converted);
 async function read(origin){const response=await fetch(origin+'/api/hukamnama',{signal:AbortSignal.timeout(70000)});return{status:response.status,body:await response.json()};}
@@ -46,16 +43,19 @@ async function waitOriginal(){for(let n=0;n<100;n++){if(original.exitCode!==null
  for(const entry of [{status:204,html:''},{status:205,html:''},{contentType:'text/plain',html:card()},{contentType:'application/json',html:JSON.stringify({synthetic:'<div class=hukamnama-card><div class=hukamnama-title>Synthetic</div><div class=hukamnama-text>ਅ ॥੧॥</div></div>'})},{status:404,html:card()},{status:500,html:card()}]){setMode(entry);const [a,b]=await Promise.all([read(originalOrigin),read(candidateOrigin)]);assert.deepEqual(b,a);evidence.api.push({name:'status-or-MIME',fixture:entry.status??entry.contentType,original:a,candidate:b});}
  for(const mode of ['redirect','redirect-loop','reset','hang-headers','hang-body']){
   setMode(mode);
+  const bridgeBefore=outbound.length;
   const before=Object.fromEntries(Object.entries(sideFixtures).map(([name,fixture])=>[name,fixture.requests.length]));
   const [a,b]=await Promise.all([measureRead('original',()=>read(originalOrigin)),measureRead('candidate',()=>read(candidateOrigin))]);
   const events=name=>sideFixtures[name].requests.slice(before[name]);
-  for(let n=0;n<100&&Object.keys(sideFixtures).some(name=>events(name).some(event=>!event.closed));n++)await delay(10);
+  for(let n=0;n<100&&(Object.keys(sideFixtures).some(name=>events(name).some(event=>!event.closed))||outbound.slice(bridgeBefore).some(event=>!event.upstreamClosed||!event.downstreamClosed||((mode==='reset'||mode.startsWith('hang'))&&(!event.upstreamSocketClosed||!event.downstreamSocketClosed))));n++)await delay(10);
   const sides={original:a,candidate:b};
   // Snapshot actual response-close observations while both fixture servers and
   // runtime processes remain alive. finally/fixture.close cannot satisfy this.
   for(const name of Object.keys(sides))sides[name].acquisitions=events(name).map(event=>({...event,side:name}));
   assertTransportCase(mode,sides);
-  evidence.api.push({name:mode,original:a.response,candidate:b.response,transports:sides,socketsClosedBeforeTeardown:true});
+  const bridgeEvents=outbound.slice(bridgeBefore);assert.ok(bridgeEvents.length>0);assert.ok(bridgeEvents.every(event=>event.upstreamClosed&&event.downstreamClosed),'both bridge response legs close before teardown');
+  if(mode==='reset'||mode.startsWith('hang'))assert.ok(bridgeEvents.every(event=>event.upstreamSocketClosed&&event.downstreamSocketClosed),'both actual TCP sockets close before teardown');
+  evidence.api.push({name:mode,original:a.response,candidate:b.response,transports:sides,bridgeEvents,socketsClosedBeforeTeardown:true});
  }
  setMode({html:card()});const before=sideFixtures.candidate.requests.length;const concurrent=await Promise.all(Array.from({length:3},()=>read(candidateOrigin)));assert.ok(concurrent.every(x=>JSON.stringify(x)===JSON.stringify(concurrent[0])));assert.equal(sideFixtures.candidate.requests.length-before,3);evidence.concurrentRequests=3;
  const puppeteer=dependency('puppeteer-core');const executable=process.env.SGPC_TEST_CHROME;assert.ok(executable&&fs.existsSync(executable),'Use preinstalled Chrome; no silent browser download');
@@ -81,6 +81,7 @@ async function waitOriginal(){for(let n=0;n<100;n++){if(original.exitCode!==null
  for(const entry of evidence.api)console.log('SGPC_CI_API '+JSON.stringify(entry));
  for(const entry of evidence.ui)console.log('SGPC_CI_UI '+JSON.stringify(entry));
  for(const file of after)console.log('SGPC_CI_SEALED_FILE '+JSON.stringify(file));
+ console.log('SGPC_CI_BRIDGE '+JSON.stringify(bridge.proof));
  console.log('SGPC_CI_ACCEPTANCE '+JSON.stringify({accepted:true,source,apiCases:evidence.api.length,uiReferences:evidence.ui.length,concurrentRequests:3,originalNext:'16.0.10',candidateNext:'16.4.3',sealedFileCount:after.length,sealedBeforeSHA256:sha(JSON.stringify(sealed.files)),sealedAfterSHA256:sha(JSON.stringify(after)),outboundRequestCount:outbound.length,realProviderRequests:0,uploads:0}));
 }catch(error){console.error('CI_VERIFICATION_FAILED '+error.message);console.error('ORIGINAL_NEXT_DIAGNOSTICS '+originalLog);throw error;}
 finally{try{if(browser)await browser.close();}finally{try{if(candidate)await candidate.dispose();}finally{try{await stop(original);}finally{for(const fixture of Object.values(sideFixtures))await fixture.close();}}}}

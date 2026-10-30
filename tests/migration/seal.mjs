@@ -19,13 +19,14 @@ export async function stop(child){
 }
 export function inventory(directory){
  const files=[];
- function visit(relative=''){for(const name of fs.readdirSync(path.join(directory,relative)).sort()){const rel=path.join(relative,name),full=path.join(directory,rel),stat=fs.lstatSync(full);assert.ok(!stat.isSymbolicLink(),'sealed artifact cannot contain a symlink');if(stat.isDirectory())visit(rel);else{assert.ok(!/\.(node|dylib|so|br)$/.test(rel),'native/browser binary excluded');assert.ok(!/private-capture|raw\.html|rendered\.html|(?:^|\/)\.env/.test(rel));files.push({path:rel,bytes:stat.size,sha256:sha(fs.readFileSync(full))});}}}visit();return files;
+ function visit(relative=''){for(const name of fs.readdirSync(path.join(directory,relative)).sort()){const rel=path.join(relative,name),full=path.join(directory,rel),stat=fs.lstatSync(full);assert.ok(!stat.isSymbolicLink(),'sealed artifact cannot contain a symlink');if(stat.isDirectory())visit(rel);else{assert.ok(!/\.(node|dylib|so|br)$/.test(rel),'native/browser binary excluded');assert.ok(!/private-capture|raw\.html|rendered\.html|(?:^|\/)\.env/.test(rel));const bytes=fs.readFileSync(full);assert.ok(!/tests[\/]migration|fixture-bridge/.test(rel)&&!bytes.includes('x-sgpc-test-source-url')&&!bytes.includes('sgpc-synthetic-egress'),'test-only fixture bridge must not enter sealed release');files.push({path:rel,bytes:stat.size,sha256:sha(bytes)});}}}visit();return files;
 }
 export async function seal(){
  const directory=path.resolve('.migration-artifacts/sealed');fs.mkdirSync(directory,{recursive:true});
  await command(process.execPath,['node_modules/wrangler/bin/wrangler.js','deploy','--dry-run','--outdir',directory+'/worker','--metafile',directory+'/metafile.json'],{env:{...process.env,WRANGLER_SEND_METRICS:'false',WRANGLER_LOG_PATH:path.resolve('.migration-artifacts/wrangler.log'),CI:'1'}});
  const meta=JSON.parse(fs.readFileSync(directory+'/metafile.json'));
  const inputs=Object.keys(meta.inputs);assert.ok(inputs.every(x=>!/[\/]node_modules[\/](?:@sparticuz|puppeteer(?:-core)?)[\/]/.test(x)),'native scraper imports must not enter sealed worker');
+ assert.ok(inputs.every(x=>!/(?:^|[\/])tests[\/]migration[\/]/.test(x)),'test-only migration imports must not enter sealed worker');
  const entry=Object.keys(meta.outputs).find(file=>meta.outputs[file].entryPoint&&/\.(?:m?js)$/.test(file));assert.ok(entry,'single emitted Worker entry must be discovered from metafile');
  fs.cpSync('.open-next/assets',directory+'/assets',{recursive:true});
  const config={name:'sgpc-hukamnama-scraper',main:path.relative(directory,path.resolve(entry)),compatibility_date:'2026-10-30',compatibility_flags:['nodejs_compat'],workers_dev:false,preview_urls:false,assets:{directory:'assets',binding:'ASSETS'}};
