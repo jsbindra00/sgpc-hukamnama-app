@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sgpc-hukamnama-scraper",
+  "account_id": "4abb2d00cad9a3253e7d65e3eadbacf2",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat"],

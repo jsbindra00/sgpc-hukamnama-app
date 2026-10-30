@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: sgpc-verify-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -62,5 +62,19 @@ jobs:
                 --init-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all \
                 "$SGPC_VERIFY_NODE" tests/migration/verify-ci.mjs
             '
-      # Verification only: no deployment, secrets, cache writes, artifact uploads,
-      # provider content uploads, account resources or public preview creation.
+      - name: Bind accepted seal to this source and this verification job
+        run: node scripts/protected-release.mjs record
+      - name: Upload exact verified main bytes behind reviewed owner Access
+        if: >-
+          github.event_name == 'push' &&
+          github.repository == 'jsbindra00/sgpc-hukamnama-app' &&
+          github.ref == 'refs/heads/main' &&
+          vars.SGPC_PROTECTED_RELEASE_ENABLED == 'true'
+        env:
+          SGPC_PROTECTED_RELEASE_ENABLED: ${{ vars.SGPC_PROTECTED_RELEASE_ENABLED }}
+          CLOUDFLARE_ACCOUNT_ID: '4abb2d00cad9a3253e7d65e3eadbacf2'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/protected-release.mjs deploy
+      # Release is disabled by the committed receipt and workers_dev:false.
+      # PRs/dispatches never receive this credential, deploy, or create previews.
+      # No cache/artifact/provider uploads, new resources or autoconfiguration.

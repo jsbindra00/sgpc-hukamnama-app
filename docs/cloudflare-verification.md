@@ -1,8 +1,9 @@
 # Cloudflare verification scope
 
-This branch prepares a hosting adapter and credential-free verification. It does
-not claim a completed deployment, genuine full-app pass, or Cloudflare-origin
-access until the reviewed Linux workflow actually passes on this exact revision.
+This branch prepares a hosting adapter, credential-free verification and disabled
+protected automatic release. Deployment and Cloudflare-origin access remain
+separate gates. See `protected-release.md` for the root-controlled activation and
+authenticated live acceptance requirements.
 
 The original25 source blobs are frozen in `migration/source-provenance.json`.
 `tests/migration/source-invariants.mjs` checks protected original UI/API/font files,
@@ -44,11 +45,13 @@ If genuine baseline or candidate behavior fails, CI must remain red; this branch
 does not rewrite business UI behavior to hide a failure.
 
 All uploaded repository content is original public source or synthetic fixtures.
-Captured provider HTML/text never enters this repository. The workflow does not
+Captured provider HTML/text never enters this repository. Verification does not
 upload generated content/artifacts; evidence manifests and synthetic outcomes are
-logged. It has contents:read only, no secrets references, no deployment job,
-no environment approvals, no pull_request_target, no cache writes and no remote
-binding. CI source/production scraper hosts are blocked at the runner in addition
+logged. Verification has contents:read only, no credentials, no
+pull_request_target, no cache writes and no remote binding. Only a trusted main
+push after full same-job acceptance and separate reviewed protection gates can
+reach the disabled-by-default upload step and its matching Worker-only secret.
+CI source/production scraper hosts are blocked at the runner in addition
 to the fixture network controls. Full runtime verification uses a Linux network
 namespace with only loopback up; after setup it drops back to the runner UID,
 removes capabilities and sets no-new-privileges. No actual SGPC or production API request is part
@@ -57,6 +60,6 @@ reads, not scraper content.
 
 Independent CI-safety review and controller push must precede any workflow run.
 Only an actual successful run can establish genuine transport/UI and sealed byte
-proof. A later separately gated bounded Cloudflare-origin GET must establish
-provider reachability before resource/credential/deployment/protection/cutover
-and fallback consumer acceptance. The old Vercel service and consumers stay intact.
+proof for its revision. A separately gated bounded Cloudflare-origin GET must
+establish provider reachability during the protected pilot, before cutover and
+fallback consumer acceptance. The old Vercel service and consumers stay intact.
