@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare and local verification
+/.open-next/
+/.wrangler/
+/.migration-artifacts/
+/.migration-baseline/

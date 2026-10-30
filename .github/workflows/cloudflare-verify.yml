@@ -1,0 +1,66 @@
+name: Verify Cloudflare migration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sgpc-verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      WRANGLER_SEND_METRICS: 'false'
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      NODE_OPTIONS: --max-old-space-size=3072
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          submodules: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Block live scraper hosts on this ephemeral runner
+        run: |
+          printf '\n127.0.0.1 hs.sgpc.net sgpc-hukamnama-scraper.vercel.app\n::1 hs.sgpc.net sgpc-hukamnama-scraper.vercel.app\n' | sudo tee -a /etc/hosts > /dev/null
+      - name: Install pinned public packages without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Source and lightweight genuine workerd checks
+        run: |
+          npm run verify:source
+          npm run lint
+          npm test
+      - name: Select preinstalled Chrome without downloads
+        run: node tests/migration/find-chrome.mjs
+      - name: Build genuine original Next reference
+        run: node tests/migration/prepare-ci.mjs
+      - name: Build candidate Next and OpenNext
+        run: npm run build:cloudflare
+      - name: Verify exact sealed bytes through genuine API, RSC and UI
+        run: |
+          SGPC_VERIFY_UID="$(id -u)"
+          SGPC_VERIFY_GID="$(id -g)"
+          SGPC_VERIFY_NODE="$(command -v node)"
+          sudo --preserve-env=PATH,HOME,CI,NEXT_TELEMETRY_DISABLED,WRANGLER_SEND_METRICS,PUPPETEER_SKIP_DOWNLOAD,NODE_OPTIONS,RUNNER_TEMP,SGPC_TEST_CHROME \
+            env SGPC_VERIFY_UID="$SGPC_VERIFY_UID" SGPC_VERIFY_GID="$SGPC_VERIFY_GID" SGPC_VERIFY_NODE="$SGPC_VERIFY_NODE" \
+            unshare --net -- bash --noprofile --norc -euo pipefail -c '
+              ip link set lo up
+              exec setpriv --reuid "$SGPC_VERIFY_UID" --regid "$SGPC_VERIFY_GID" \
+                --init-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all \
+                "$SGPC_VERIFY_NODE" tests/migration/verify-ci.mjs
+            '
+      # Verification only: no deployment, secrets, cache writes, artifact uploads,
+      # provider content uploads, account resources or public preview creation.

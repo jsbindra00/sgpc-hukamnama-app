@@ -1,0 +1,55 @@
+# Cloudflare verification scope
+
+This branch prepares a hosting adapter and credential-free verification. It does
+not claim a completed deployment, genuine full-app pass, or Cloudflare-origin
+access until the reviewed Linux workflow actually passes on this exact revision.
+
+The original25 source blobs are frozen in `migration/source-provenance.json`.
+`tests/migration/source-invariants.mjs` checks protected original UI/API/font files,
+the exact parser SHA and allowed hosting configuration exceptions. The native
+acquisition boundary is the sole business-source exception. Next16.0.10 to16.4.3
+is a reviewed MINOR update, paired with OpenNext1.20.14 and Webpack. No peer
+constraint is bypassed. React/React DOM19.2.0 and other UI dependencies are retained.
+
+The candidate uses a fixed source URL/UA, follow redirects, no server cache and a
+60000ms signal through headers/body. Only reviewed204/205 aborts and literal-text
+interpretation for text/plain/application/json supplement the unchanged parser.
+The accepted source has server-rendered data. JavaScript mutation remains a
+negative control; other MIME/encoding/rendering combinations are not universally
+claimed compatible.
+
+Linux CI first archives the exact public original source from local Git history.
+It installs original packages with scripts disabled and builds real Next16.0.10.
+Its test-only preload runs the real original native browser/action/parser and
+routes only the browser navigation boundary to synthetic loopback HTTP. The
+candidate is built with real Next/OpenNext and bundled using Wrangler dry-run.
+Every emitted module, graph and static asset is inventoried and hashed. Miniflare
+serves those exact sealed bytes and ASSETS with a strict fixture-only outbound
+service. No alternate production URL, test handler, mock parser or test-only
+framework transport is compiled into the candidate.
+
+The workflow then compares full original/candidate API objects, measured MIME and
+status behavior, redirects/errors, concurrent independent requests and real60s
+header/body cleanup. A browser mounts the unchanged React Query component and
+must exercise its real compiled Next-Action POST/Flight transport. Loading,
+success, existing error/retry behavior and both original font assets are checked.
+If genuine baseline or candidate behavior fails, CI must remain red; this branch
+does not rewrite business UI behavior to hide a failure.
+
+All uploaded repository content is original public source or synthetic fixtures.
+Captured provider HTML/text never enters this repository. The workflow does not
+upload generated content/artifacts; evidence manifests and synthetic outcomes are
+logged. It has contents:read only, no secrets references, no deployment job,
+no environment approvals, no pull_request_target, no cache writes and no remote
+binding. CI source/production scraper hosts are blocked at the runner in addition
+to the fixture network controls. Full runtime verification uses a Linux network
+namespace with only loopback up; after setup it drops back to the runner UID,
+removes capabilities and sets no-new-privileges. No actual SGPC or production API request is part
+of verification. Official font/npm build inputs are ordinary public package/font
+reads, not scraper content.
+
+Independent CI-safety review and controller push must precede any workflow run.
+Only an actual successful run can establish genuine transport/UI and sealed byte
+proof. A later separately gated bounded Cloudflare-origin GET must establish
+provider reachability before resource/credential/deployment/protection/cutover
+and fallback consumer acceptance. The old Vercel service and consumers stay intact.
