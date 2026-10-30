@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "repository": "jsbindra00/sgpc-hukamnama-app",
+  "githubVisibility": "public",
+  "packagePrivateField": true,
+  "sourceCommit": "9a83971250ef7bf020684c8a7beaa2af5d5590c0",
+  "sourceTree": "a9bfa968c36d5b9ffc1ca2d21f932e5ad9dac218",
+  "sourceBranch": "main",
+  "migrationBranch": "codex/cloudflare-migration",
+  "liveAlias": "sgpc-hukamnama-scraper.vercel.app",
+  "liveDeployment": "dpl_BFzCbtq6ZV43mrvPMQNWJgVHBGd8",
+  "vercelProject": "prj_IKeFr2lBF9b6XApplEXLrZtxoz69",
+  "vercelTeam": "team_3a5PM0VlcknQRf3h97giX7kX",
+  "sourceMatchesCurrentDeploymentAndMain": true,
+  "originalBlobFileCount": 25,
+  "originalBlobBytes": 325702,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 481,
+      "sha256": "6fe127006eb28e165d95d0a920c0b3663ba6da62c27836b818cf52031598706f",
+      "gitBlob": "a961f91db0493951a6453f454458ccc31b21ba8b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1450,
+      "sha256": "60b55ff7df79af72590f9524208e46642bc32bdc175cdad41349681c0e2f958f",
+      "gitBlob": "e215bc4ccf138bbc38ad58ad57e92135484b3c0f"
+    },
+    {
+      "path": "app/api/hukamnama/actions.ts",
+      "bytes": 5401,
+      "sha256": "501a021b89cde6e83e2716aaf472b03f197da135b754dea1b6c2788ad9009c00",
+      "gitBlob": "5fdf99967f3e28db8cd7de150a31a7771ae8c7e2"
+    },
+    {
+      "path": "app/api/hukamnama/route.ts",
+      "bytes": 430,
+      "sha256": "52e0ba6c8da0c8099ea901a70b67de517b1caa77f042e0cc859cd14b00d352cf",
+      "gitBlob": "35d1bb3fc57ae7e55654dad9f7f3b22ebfc22f12"
+    },
+    {
+      "path": "app/favicon.ico",
+      "bytes": 25931,
+      "sha256": "2b8ad2d33455a8f736fc3a8ebf8f0bdea8848ad4c0db48a2833bd0f9cd775932",
+      "gitBlob": "718d6fea4835ec2d246af9800eddb7ffb276240c"
+    },
+    {
+      "path": "app/globals.css",
+      "bytes": 4168,
+      "sha256": "42fd06cb5ccf12227e18c48913da993317f8548aed1bbc8305a273c26dfba422",
+      "gitBlob": "dc98be74c475620e219a99b9299c2f321231e6f1"
+    },
+    {
+      "path": "app/layout.tsx",
+      "bytes": 784,
+      "sha256": "c9e1bdb41a3178a85eec307243d5ad928af69ac4d597b522401e09d57255ccc4",
+      "gitBlob": "f63cc5ae47a02a8217b9258c24f40d89d6951f89"
+    },
+    {
+      "path": "app/page.tsx",
+      "bytes": 480,
+      "sha256": "f61b8768a5aad87a67cf326dcdb29dabe3e4eccb62f091431c10993a005e126c",
+      "gitBlob": "389b628086ed1a47a8b13ea2129d4cf809b18228"
+    },
+    {
+      "path": "components.json",
+      "bytes": 447,
+      "sha256": "69e0b1e4d27fca1f17d46aa44d3c3e8ced350ada2f03e60f75723fe868851262",
+      "gitBlob": "b7b9791c70c68356d9d799c4fb8257e953522721"
+    },
+    {
+      "path": "components/HukamnamaDisplay.tsx",
+      "bytes": 2554,
+      "sha256": "9029175f92accc360f97ba331efcef69d17505613d42825d80fe3decb41f0fa0",
+      "gitBlob": "b09cfb22107df9651b9c75b630076b1e54ea10a3"
+    },
+    {
+      "path": "components/providers.tsx",
+      "bytes": 502,
+      "sha256": "553f50563e96b99ba667a45ef98b973bdbb65bdf00d92e14f1c23ebaf41ef0a9",
+      "gitBlob": "ee8282624e973dbac081a71fd42c996d24e2515d"
+    },
+    {
+      "path": "components/ui/card.tsx",
+      "bytes": 1987,
+      "sha256": "2040cdff27cd1ed771e0ebbd15abcd73d31f2f1e4be6664bd6816fffd2a87476",
+      "gitBlob": "681ad980f27a34dd3d4ba08c7614ce1f7c006143"
+    },
+    {
+      "path": "components/ui/skeleton.tsx",
+      "bytes": 276,
+      "sha256": "f2aea81d8baf2b621945382aabac150e3db40f20d19ac1abea7aff805f1dc33c",
+      "gitBlob": "32ea0ef7fb4d4f7cb0affa7a3b329533b5f2af23"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "bytes": 465,
+      "sha256": "870f1adccecf3051cbcd9fd307cef51d7633cf510979c181a81f4b1797273493",
+      "gitBlob": "05e726d1b4201bc8c7716d2b058279676582e8c0"
+    },
+    {
+      "path": "lib/utils.ts",
+      "bytes": 166,
+      "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+      "gitBlob": "bd0c391ddd1088e9067844c48835bf4abcd61783"
+    },
+    {
+      "path": "next.config.ts",
+      "bytes": 174,
+      "sha256": "7bfc522c31b4ad72a6e1624acb6a2394ad4207a7f0087d1bf115e2f5c955e32a",
+      "gitBlob": "0b8d58463115dd1b6cbd0c93845cbfa6b4a983c1"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 275059,
+      "sha256": "7ed1e623f6ad2c998f8257fae431898e75707cccb9d363916403540728532f57",
+      "gitBlob": "2bb75cd863988f83013511f61c34f882b35d8d44"
+    },
+    {
+      "path": "package.json",
+      "bytes": 873,
+      "sha256": "6c6e684fcd5c8cbe14ada66e3d242865da091172666ee2f2df024ad2317f53d3",
+      "gitBlob": "db0f7458143f8cd5f547527aa04e4e552e2d6772"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "bytes": 94,
+      "sha256": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde",
+      "gitBlob": "61e36849cf7cfa9f1f71b4a3964a4953e3e243d3"
+    },
+    {
+      "path": "public/file.svg",
+      "bytes": 391,
+      "sha256": "2b67812c325c199a02536cdbeea0c593a72f707d323b72ee3e08dbab06753bd4",
+      "gitBlob": "004145cddf3f9db91b57b9cb596683c8eb420862"
+    },
+    {
+      "path": "public/globe.svg",
+      "bytes": 1035,
+      "sha256": "b614b9bf183925957661ac851498fe1d8029fd43a62fbfed86f9e2624a57e7cf",
+      "gitBlob": "567f17b0d7c7fb662c16d4357dd74830caf2dccb"
+    },
+    {
+      "path": "public/next.svg",
+      "bytes": 1375,
+      "sha256": "55995dfad6ecb4945a1e856ddca03c5e16aa5bf13fd21b4df6a74ae79357bcfc",
+      "gitBlob": "5174b28c565c285e3e312ec5178be64fbeca8398"
+    },
+    {
+      "path": "public/vercel.svg",
+      "bytes": 128,
+      "sha256": "f081337b2fee635b455b63275406a3e7f39d6a014e25ad90dab5a67e62a12ac4",
+      "gitBlob": "77053960334e2e34dc584dea8019925c3b4ccca9"
+    },
+    {
+      "path": "public/window.svg",
+      "bytes": 385,
+      "sha256": "644768c4aaeb4767bce293344eeb0c125fb804a94d801440424072202d85e3a1",
+      "gitBlob": "b2b2a44f6ebc70c450043c05a002e7a93ba5d651"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 666,
+      "sha256": "be18523b23b78b6e1a876ddd107d330f0168bddf09d751b57e0b5edce69c66f3",
+      "gitBlob": "3a13f90a773b0facb675bf5b1a8239c8f33d36f5"
+    }
+  ],
+  "gitlinks": [
+    {
+      "path": "sgpc-scraper-script",
+      "mode": "160000",
+      "commit": "d67b5cf107be95b5da1b538f95eabc5e9a3a7ea1",
+      "initialized": false
+    }
+  ],
+  "gitmodulesPresent": false,
+  "privateEnvironmentFiles": [],
+  "configurationVariableNames": [
+    "NODE_ENV (platform)"
+  ],
+  "vercelEnvironmentCount": 0,
+  "hiddenProductionEnvironmentCount": 0,
+  "checkedAt": "2026-10-30T16:59:17.073661+00:00"
+}
