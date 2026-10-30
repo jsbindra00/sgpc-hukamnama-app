@@ -11,6 +11,13 @@ acquisition boundary is the sole business-source exception. Next16.0.10 to16.4.3
 is a reviewed MINOR update, paired with OpenNext1.20.14 and Webpack. No peer
 constraint is bypassed. React/React DOM19.2.0 and other UI dependencies are retained.
 
+The unused, uninitialized `sgpc-scraper-script` gitlink is omitted from the active
+migration tree because its missing `.gitmodules` URL breaks checkout's temporary
+auth cleanup even with submodules disabled. Its exact pointer remains in the
+frozen original tree and provenance. Source invariants and a disposable local
+Git regression check this hosting exception; credentials remain nonpersistent
+and no submodule URL or initialization is added.
+
 The candidate uses a fixed source URL/UA, follow redirects, no server cache and a
 60000ms signal through headers/body. Only reviewed204/205 aborts and literal-text
 interpretation for text/plain/application/json supplement the unchanged parser.

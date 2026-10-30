@@ -8,6 +8,11 @@ export const originalAction=()=>execFileSync('git',['show',baseline+':app/api/hu
 export const parser=source=>source.slice(source.indexOf('    const $ = cheerio.load(html);'),source.indexOf('\n  } catch (error)'));
 export function verifySource(){
  const source=JSON.parse(fs.readFileSync('migration/source-provenance.json'));
+ const removedGitlink={path:'sgpc-scraper-script',mode:'160000',commit:'d67b5cf107be95b5da1b538f95eabc5e9a3a7ea1',initialized:false};
+ assert.deepEqual(source.gitlinks,[removedGitlink],'frozen original gitlink provenance');
+ assert.equal(execFileSync('git',['ls-tree',baseline,'--',removedGitlink.path],{encoding:'utf8'}).trim(),`${removedGitlink.mode} commit ${removedGitlink.commit}\t${removedGitlink.path}`,'original baseline retains exact unused gitlink pointer');
+ assert.equal(execFileSync('git',['ls-files','--stage','--',removedGitlink.path],{encoding:'utf8'}),'','authorized hosting exception removes only unused unresolved gitlink from migration');
+ assert.equal(fs.existsSync('.gitmodules'),false);assert.equal(fs.existsSync(removedGitlink.path+'/.git'),false);
  const exceptions=new Set(['.gitignore','README.md','package.json','package-lock.json','next.config.ts','eslint.config.mjs','app/api/hukamnama/actions.ts']);
  const protectedFiles=source.files.filter(x=>!exceptions.has(x.path));
  for(const file of protectedFiles)assert.equal(hash(fs.readFileSync(file.path)),file.sha256,'original protected file changed: '+file.path);
@@ -21,6 +26,6 @@ export function verifySource(){
  for(const name of Object.keys(oldPackage.dependencies).filter(name=>!['next','@sparticuz/chromium','puppeteer','puppeteer-core'].includes(name)))assert.equal(lock.packages['node_modules/'+name].version,oldLock.packages['node_modules/'+name].version,'original runtime UI/parser package version changed: '+name);
  for(const name of ['@sparticuz/chromium','puppeteer','puppeteer-core'])assert.equal(pkg.dependencies[name],undefined);
  const files=execFileSync('git',['ls-files'],{encoding:'utf8'}).split('\n');assert.ok(files.every(x=>!/private-capture|raw\.html|rendered\.html|\.env(?:\.|$)/.test(x)));
- return {baseline,protectedOriginalFiles:protectedFiles.length,allowedHostingExceptions:[...exceptions],parserSHA256:hash(parser(action)),sourceParserUnchanged:true};
+ return {baseline,protectedOriginalFiles:protectedFiles.length,allowedHostingExceptions:[...exceptions],removedUnusedGitlinks:[removedGitlink],parserSHA256:hash(parser(action)),sourceParserUnchanged:true};
 }
 if(process.argv[1]?.endsWith('source-invariants.mjs'))console.log(JSON.stringify(verifySource()));

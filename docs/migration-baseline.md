@@ -4,6 +4,13 @@ The original source is `9a83971250ef7bf020684c8a7beaa2af5d5590c0` on `jsbindra00
 
 `migration/source-provenance.json` freezes all 25 original file hashes and the inactive `sgpc-scraper-script` gitlink (`d67b5cf107be95b5da1b538f95eabc5e9a3a7ea1`). There is no `.gitmodules` file, and the application does not import this gitlink. Do not initialize an unknown submodule or replace its recorded commit.
 
+The migrated tree omits this unused, uninitialized gitlink as an authorized hosting
+exception. The first Linux CI run failed in checkout's temporary-auth cleanup:
+`git submodule foreach --recursive` rejects its missing `.gitmodules` URL even
+with `submodules: false`. The frozen original commit and recorded gitlink pointer
+remain unchanged. No package, script, import or runtime depends on this path; no
+initialized submodule files were removed and no replacement URL was invented.
+
 ## Existing behavior
 
 - The page renders the existing React Query skeleton and calls the `getHukamnama` Next server action from the client. An API-only static export would drop an active transport.

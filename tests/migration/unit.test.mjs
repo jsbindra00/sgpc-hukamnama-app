@@ -13,6 +13,7 @@ import {verifySource,originalAction} from './source-invariants.mjs';
 import {stop} from './seal.mjs';
 import {probeRuntime} from './probe-runtime.mjs';
 import './ci-assertions.test.mjs';
+import './checkout-cleanup.test.mjs';
 const esbuild=dependency('esbuild'),cheerio=dependency('cheerio');
 const UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 function reference(html){const module={exports:{}};const browser={newPage:async()=>({setUserAgent:async()=>{},goto:async()=>{},content:async()=>html}),close:async()=>{}};const code=esbuild.transformSync(originalAction(),{loader:'ts',format:'cjs'}).code;vm.runInNewContext(code,{module,exports:module.exports,process:{env:{NODE_ENV:'development'}},console:{error(){}},require:name=>{if(name==='cheerio')return cheerio;if(name==='puppeteer')return{launch:async()=>browser};throw Error(name);}});return module.exports.getHukamnama().then(x=>JSON.parse(JSON.stringify(x)));}

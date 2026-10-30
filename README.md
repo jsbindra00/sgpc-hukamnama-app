@@ -57,6 +57,9 @@ creation. Live SGPC/Vercel scraper hosts are blocked; only synthetic loopback
 fixtures feed tests. The original source is read from frozen commit
 `9a83971250ef7bf020684c8a7beaa2af5d5590c0`, without initializing the inactive
 submodule. Original reference packages install without lifecycle scripts.
+The active migration omits that unused gitlink because its missing `.gitmodules`
+URL breaks checkout's temporary-auth cleanup. Its frozen original tree pointer
+and provenance remain unchanged; no submodule is initialized or given a URL.
 
 The Wrangler configuration disables workers.dev and preview URLs. No account,
 Worker deployment, DNS change or consumer cutover is performed by this branch.
