@@ -6,6 +6,7 @@ import {createServer} from 'node:net';
 import {setTimeout as delay} from 'node:timers/promises';
 import {dependency} from './tools.mjs';
 import {observeFonts} from './font-diagnostics.mjs';
+import {loadPrimaryFonts} from './primary-fonts.mjs';
 import {fixtureServer} from './fixture-server.mjs';
 import {fixtureBridge} from './fixture-bridge.mjs';
 import {fixtures,card} from './fixtures.mjs';
@@ -73,10 +74,10 @@ async function waitOriginal(){for(let n=0;n<100;n++){if(original.exitCode!==null
   assert.ok(actions.length>0,'actual React Query must invoke genuine Next-Action transport');assert.ok(actions.every(x=>x.contentType?.includes('text/x-component')));
   const rendered=await page.evaluate(()=>({title:document.querySelector('[data-slot="card-title"]').textContent,date:document.querySelector('[data-slot="card-description"]').textContent,ang:document.querySelector('[data-slot="card-header"] > p').textContent,lines:[...document.querySelectorAll('[data-slot="card-content"] p')].map(node=>node.textContent)}));
   const expected=fixtures.find(item=>item.name==='fallback-card2').expected;assert.deepEqual(rendered,{title:expected.title,date:expected.date,ang:expected.ang,lines:expected.lines.flatMap(line=>[line.gurmukhi,line.translation])});
-  await page.evaluate(async()=>{await document.fonts.ready;const mono=document.createElement('span');mono.textContent='Synthetic font';mono.style.fontFamily='var(--font-geist-mono)';document.body.append(mono);await document.fonts.load('12px '+getComputedStyle(mono).fontFamily);mono.remove();});
+  const primaryFonts=await page.evaluate(loadPrimaryFonts);
   const fontVars=await page.evaluate(()=>{const style=getComputedStyle(document.body);return{sans:style.getPropertyValue('--font-geist-sans'),mono:style.getPropertyValue('--font-geist-mono')};});assert.ok(fontVars.sans&&fontVars.mono);assert.ok(fonts.every(x=>x.status===200||x.status===304));assert.ok(fonts.length>=2,'both original font assets load');
   const beforeError=actions.length;setMode({status:205,html:''});await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>document.body.innerText.includes('Error loading Hukamnama. Please try again later.'),{timeout:30000});assert.ok(actions.length-beforeError>=4,'existing automatic retry behavior must execute real actions');
-  evidence.ui.push({origin:origin===originalOrigin?'original':'candidate',skeleton:true,success:true,error:true,rendered,actualServerActions:actions,fontVariables:fontVars,fontAssets:fonts});
+  evidence.ui.push({origin:origin===originalOrigin?'original':'candidate',skeleton:true,success:true,error:true,rendered,actualServerActions:actions,fontVariables:fontVars,primaryFonts,fontAssets:fonts});
   }catch(error){
    try{console.error('SGPC_CI_FONT_FAILURE '+JSON.stringify(await fontDiagnostics.snapshot()));}
    catch{console.error('SGPC_CI_FONT_DIAGNOSTIC_UNAVAILABLE');}
