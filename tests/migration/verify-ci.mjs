@@ -28,8 +28,10 @@ const mf=dependency('miniflare'),wrangler=dependency('wrangler');
 let candidate,browser;const evidence={source,api:[],ui:[],sealedBefore:sealed.files,realProviderRequests:0,uploads:0};
 try{
 const options=wrangler.unstable_getMiniflareWorkerOptions(path.join(sealed.directory,'wrangler.json'));
+const workerName=JSON.parse(fs.readFileSync(path.join(sealed.directory,'wrangler.json'))).name;
+const sealedCompanion=sealed.files.find(file=>file.path==='worker/README.md');assert.ok(sealedCompanion,'Pinned Wrangler companion must remain in the complete sealed manifest');
 const outbound=[];
-const converted=mf.convertV4MiniflareOptions({host:'127.0.0.1',port:0,cf:false,workers:[{...explicitModules(options.workerOptions,options.main,sealed.directory+'/worker'),outboundService:async request=>{
+const converted=mf.convertV4MiniflareOptions({host:'127.0.0.1',port:0,cf:false,workers:[{...explicitModules(options.workerOptions,options.main,sealed.directory+'/worker',{workerName,sealedCompanion}),outboundService:async request=>{
  const url=new URL(request.url);assert.equal(url.origin,'https://hs.sgpc.net');assert.equal(request.method,'GET');
  outbound.push({path:url.pathname,method:request.method,userAgent:request.headers.get('user-agent')});
  const response=await fetch(sideFixtures.candidate.origin+url.pathname,{method:'GET',headers:request.headers,redirect:'manual',signal:request.signal});
