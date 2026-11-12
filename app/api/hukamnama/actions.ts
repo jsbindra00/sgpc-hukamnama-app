@@ -1,6 +1,7 @@
 'use server';
 
 import * as cheerio from 'cheerio';
+import { acquireSGPCHTML } from '@/lib/sgpc-acquisition';
 
 export interface HukamnamaLine {
   gurmukhi: string;
@@ -14,39 +15,9 @@ export interface HukamnamaData {
   lines: HukamnamaLine[];
 }
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 export async function getHukamnama(): Promise<HukamnamaData> {
-  let browser = null;
   try {
-    let html = '';
-    if (isProduction) {
-      const chromium = require('@sparticuz/chromium');
-      const puppeteer = require('puppeteer-core');
-      chromium.setGraphicsMode = false;
-      browser = await puppeteer.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-      });
-    } else {
-      const puppeteer = require('puppeteer');
-      browser = await puppeteer.launch({
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-    }
-
-    const page = await browser.newPage();
-    await page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    );
-
-    await page.goto('https://hs.sgpc.net/', { waitUntil: 'networkidle2', timeout: 60000 });
-    html = await page.content();
-    await browser.close();
-    browser = null;
+    const html = await acquireSGPCHTML();
 
     const $ = cheerio.load(html);
     const dateText = $('.fs-5.customDate').text().trim();
@@ -153,9 +124,6 @@ export async function getHukamnama(): Promise<HukamnamaData> {
 
   } catch (error) {
     console.error('Error scraping Hukamnama:', error);
-    if (browser) {
-      await browser.close();
-    }
     throw new Error('Failed to load Hukamnama');
   }
 }

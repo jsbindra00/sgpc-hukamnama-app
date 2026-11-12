@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "enabled": false,
+  "accountId": "4abb2d00cad9a3253e7d65e3eadbacf2",
+  "worker": "sgpc-hukamnama-scraper",
+  "productionURL": "https://sgpc-hukamnama-scraper.shy-bonus-2f1d.workers.dev",
+  "workerReserved": false,
+  "access": {
+    "worker": "sgpc-hukamnama-scraper",
+    "scope": "all-traffic",
+    "applicationId": null,
+    "audience": null,
+    "domain": "sgpc-hukamnama-scraper.shy-bonus-2f1d.workers.dev",
+    "loginHost": "jaspreetsinghb.cloudflareaccess.com",
+    "policyIds": [],
+    "ownerEmailSHA256": null,
+    "exactOwnerEmailOnly": false,
+    "bypassPolicies": false,
+    "serviceAuthPolicies": false,
+    "anonymousDenied": false,
+    "ownerLoginVerified": false,
+    "rootReviewed": false,
+    "evidenceSHA256": null
+  },
+  "credential": {
+    "worker": "sgpc-hukamnama-scraper",
+    "workerOnly": false,
+    "rootReviewed": false
+  },
+  "authenticatedLiveAcceptanceRequired": true
+}
