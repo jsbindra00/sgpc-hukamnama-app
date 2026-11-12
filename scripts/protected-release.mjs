@@ -23,9 +23,9 @@ function jobIdentity(env,head,dirty){
  assert.match(env.GITHUB_RUN_ID??'',/^\d+$/);assert.match(env.GITHUB_RUN_ATTEMPT??'',/^\d+$/);assert.match(env.GITHUB_JOB??'',/^[A-Za-z0-9_-]+$/);
  return{sourceHead:head,runId:env.GITHUB_RUN_ID,runAttempt:env.GITHUB_RUN_ATTEMPT,job:env.GITHUB_JOB};
 }
-export function assertTrustedMain({env,head,branch,dirty}){
+export function assertTrustedMain({env,head,branch,dirty},enabledKey='SGPC_PROTECTED_RELEASE_ENABLED'){
  jobIdentity(env,head,dirty);assert.equal(branch,'main');assert.equal(env.GITHUB_REF,'refs/heads/main');assert.equal(env.GITHUB_EVENT_NAME,'push');
- assert.equal(env.SGPC_PROTECTED_RELEASE_ENABLED,'true','Protected automatic release remains disabled');
+ assert.equal(env[enabledKey],'true','Automatic release remains disabled');
  assert.equal(env.CLOUDFLARE_ACCOUNT_ID,accountId,'Wrong Cloudflare account');assert.ok(env.CLOUDFLARE_API_TOKEN,'Missing matching Worker-only CI credential');
 }
 export function assertProtection(receipt,config){
@@ -57,16 +57,21 @@ export function recordVerification({root,env,head,dirty}){
  const receipt={...identity,...artifacts,sourceConfigSHA256:hashFile(root,'wrangler.jsonc')};
  fs.writeFileSync(path.join(root,'.migration-artifacts/verified-release.json'),JSON.stringify(receipt,null,2)+'\n');return receipt;
 }
-export function prepareUpload({root,env,head,branch,dirty}){
- assertTrustedMain({env,head,branch,dirty});const config=json(root,'wrangler.jsonc'),protection=json(root,'cloudflare/protected-release.json');assertProtection(protection,config);
+export function verifiedArtifacts({root,env,head,dirty}){
+ sourceConfig(json(root,'wrangler.jsonc'));
  const proofPath=path.join(root,'.migration-artifacts/verified-release.json');assert.ok(fs.existsSync(proofPath),'Missing same-job verification receipt');
  const expected={...jobIdentity(env,head,dirty),...assertArtifacts(root),sourceConfigSHA256:hashFile(root,'wrangler.jsonc')};assert.deepEqual(JSON.parse(fs.readFileSync(proofPath)),expected,'Receipt must match current exact artifacts and same job');
+ return expected;
+}
+export function prepareUpload({root,env,head,branch,dirty}){
+ assertTrustedMain({env,head,branch,dirty});const config=json(root,'wrangler.jsonc'),protection=json(root,'cloudflare/protected-release.json');assertProtection(protection,config);
+ const expected=verifiedArtifacts({root,env,head,dirty});
  const upload={name:workerName,account_id:accountId,main:'../sealed/worker/worker.js',compatibility_date:'2026-10-30',compatibility_flags:['nodejs_compat'],workers_dev:true,preview_urls:false,no_bundle:true,find_additional_modules:false,upload_source_maps:false,assets:{directory:'../sealed/assets',binding:'ASSETS'}};
  const configPath=path.join(root,'.migration-artifacts/release/wrangler.json');fs.mkdirSync(path.dirname(configPath),{recursive:true});fs.writeFileSync(configPath,JSON.stringify(upload,null,2)+'\n');
  const asset=expected.files.find(file=>/^assets\/_next\/static\/.+\.(?:js|css|woff2)$/.test(file.path))??expected.files.find(file=>/^assets\/.+\.js$/.test(file.path));assert.ok(asset,'A genuine sealed asset is required for Access verification');
  return{config:upload,configPath,productionURL:protection.productionURL,assetPath:'/'+asset.path.slice('assets/'.length)};
 }
-function pinnedWrangler(root){const folder=path.join(root,'node_modules/wrangler');assert.equal(json(folder,'package.json').version,'4.154.0','Use pinned Wrangler 4.154.0');const cli=path.join(folder,'bin/wrangler.js');assert.ok(fs.existsSync(cli));return cli;}
+export function pinnedWrangler(root){const folder=path.join(root,'node_modules/wrangler');assert.equal(json(folder,'package.json').version,'4.154.0','Use pinned Wrangler 4.154.0');const cli=path.join(folder,'bin/wrangler.js');assert.ok(fs.existsSync(cli));return cli;}
 async function execute(command,args,{root,env}){
  // Do not inherit token destinations, API-base overrides, dotenv or owner auth.
  const child=spawn(command,args,{cwd:root,stdio:'inherit',env:{PATH:env.PATH,HOME:env.HOME,TMPDIR:env.TMPDIR,CI:'true',CLOUDFLARE_ACCOUNT_ID:accountId,CLOUDFLARE_API_TOKEN:env.CLOUDFLARE_API_TOKEN,CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV:'false',WRANGLER_SEND_METRICS:'false',WRANGLER_SEND_ERROR_REPORTS:'false',WRANGLER_LOG_PATH:path.join(root,'.migration-artifacts/release/wrangler.log')}});
@@ -80,7 +85,7 @@ export async function deployRelease({root,env,head,branch,dirty,access=checkAcce
  await run(process.execPath,[cli,'deploy','--config',release.configPath,'--no-autoconfig','--no-bundle'],{root,env});
  assertArtifacts(root);await access(release.productionURL,{assetPath:release.assetPath});
 }
-function gitContext(root){const git=args=>execFileSync('git',['-C',root,...args],{cwd:root,encoding:'utf8'}).trim();return{head:git(['rev-parse','HEAD']),branch:git(['branch','--show-current']),dirty:git(['status','--porcelain','--untracked-files=all'])};}
+export function gitContext(root){const git=args=>execFileSync('git',['-C',root,...args],{cwd:root,encoding:'utf8'}).trim();return{head:git(['rev-parse','HEAD']),branch:git(['branch','--show-current']),dirty:git(['status','--porcelain','--untracked-files=all'])};}
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
  const root=process.cwd();assert.equal(process.argv.length,3,'Unexpected release arguments; overrides are forbidden');const context={root,env:process.env,...gitContext(root)};
  if(process.argv[2]==='record'){recordVerification(context);console.log('Current same-job full acceptance receipt recorded; release activation is independent.');}

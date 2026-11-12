@@ -64,17 +64,30 @@ jobs:
             '
       - name: Bind accepted seal to this source and this verification job
         run: node scripts/protected-release.mjs record
-      - name: Upload exact verified main bytes behind reviewed owner Access
+      - name: Promote the verified Worker version to public production
+        id: promote
         if: >-
           github.event_name == 'push' &&
           github.repository == 'jsbindra00/sgpc-hukamnama-app' &&
           github.ref == 'refs/heads/main' &&
-          vars.SGPC_PROTECTED_RELEASE_ENABLED == 'true'
+          vars.SGPC_PUBLIC_RELEASE_ENABLED == 'true'
         env:
-          SGPC_PROTECTED_RELEASE_ENABLED: ${{ vars.SGPC_PROTECTED_RELEASE_ENABLED }}
+          SGPC_PUBLIC_RELEASE_ENABLED: ${{ vars.SGPC_PUBLIC_RELEASE_ENABLED }}
           CLOUDFLARE_ACCOUNT_ID: '4abb2d00cad9a3253e7d65e3eadbacf2'
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: node scripts/protected-release.mjs deploy
-      # Release is disabled by the committed receipt and workers_dev:false.
-      # PRs/dispatches never receive this credential, deploy, or create previews.
-      # No cache/artifact/provider uploads, new resources or autoconfiguration.
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/public-release.mjs promote
+      - name: Verify public production without credentials
+        id: public_smoke
+        if: steps.promote.outcome == 'success'
+        run: node scripts/public-release.mjs smoke
+      - name: Restore the previous version if this release failed
+        if: >-
+          failure() &&
+          steps.promote.outputs.promotion_recorded == 'true' &&
+          (steps.promote.outcome == 'failure' || steps.public_smoke.outcome == 'failure')
+        env:
+          SGPC_PUBLIC_RELEASE_ENABLED: ${{ vars.SGPC_PUBLIC_RELEASE_ENABLED }}
+          CLOUDFLARE_ACCOUNT_ID: '4abb2d00cad9a3253e7d65e3eadbacf2'
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/public-release.mjs rollback

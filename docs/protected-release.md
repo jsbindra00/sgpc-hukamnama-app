@@ -1,5 +1,9 @@
 # Protected automatic release preparation
 
+This describes the earlier owner-only design. The workflow now targets the
+verified public production hostname with version URLs disabled. See
+[public-release.md](public-release.md) for the active design.
+
 Release activation is **false**. `workers_dev:false` and `preview_urls:false`
 remain in the source configuration. This change creates no resources,
 credentials, Access applications, domains, previews or deployments.

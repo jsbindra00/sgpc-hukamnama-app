@@ -37,15 +37,19 @@ test('trusted main context rejects PR, foreign source, dirty checkout and altern
  assert.throws(()=>assertTrustedMain({env,...context,dirty:' M app/page.tsx'}));
  assert.throws(()=>assertTrustedMain({env,...context,branch:'feature'}));
 });
-test('committed configuration stays inactive or satisfies root protection; only verified main push can reach the credential',()=>{
+test('committed configuration stays inactive or satisfies root protection; only the gated production flow can reach the credential',()=>{
  const config=JSON.parse(fs.readFileSync('wrangler.jsonc')),receipt=JSON.parse(fs.readFileSync('cloudflare/protected-release.json'));
  assert.equal(config.account_id,accountId);assert.equal(config.preview_urls,false);
  if(receipt.enabled)assertProtection(receipt,config);
  else{assert.equal(config.workers_dev,false);assert.equal(receipt.enabled,false);}
  const workflow=fs.readFileSync('.github/workflows/cloudflare-verify.yml','utf8');
- assert.equal((workflow.match(/secrets\./g)??[]).length,1);assert.ok(!/pull_request_target|upload-artifact|versions upload|wrangler-action/.test(workflow));
- const release=workflow.slice(workflow.indexOf('- name: Upload exact verified main bytes'));
- for(const condition of ["github.event_name == 'push'","github.repository == 'jsbindra00/sgpc-hukamnama-app'","github.ref == 'refs/heads/main'","vars.SGPC_PROTECTED_RELEASE_ENABLED == 'true'"])assert.ok(release.includes(condition));
+ assert.equal((workflow.match(/secrets\./g)??[]).length,2);assert.ok(!/pull_request_target|upload-artifact|versions upload|wrangler-action|protected-release.mjs deploy/.test(workflow));
+ const release=workflow.slice(workflow.indexOf('- name: Promote the verified Worker version'),workflow.indexOf('- name: Verify public production without credentials'));
+ for(const condition of ["github.event_name == 'push'","github.repository == 'jsbindra00/sgpc-hukamnama-app'","github.ref == 'refs/heads/main'","vars.SGPC_PUBLIC_RELEASE_ENABLED == 'true'"])assert.ok(release.includes(condition));
+ const smoke=workflow.slice(workflow.indexOf('- name: Verify public production without credentials'),workflow.indexOf('- name: Restore the previous version'));
+ assert.doesNotMatch(smoke,/secrets\.|github.token/);
+ const rollback=workflow.slice(workflow.indexOf('- name: Restore the previous version'));
+ for(const condition of ["failure()","steps.promote.outputs.promotion_recorded == 'true'","steps.public_smoke.outcome == 'failure'"])assert.ok(rollback.includes(condition));
  assert.ok(workflow.indexOf('tests/migration/verify-ci.mjs')<workflow.indexOf('scripts/protected-release.mjs record'));assert.ok(workflow.indexOf('scripts/protected-release.mjs record')<workflow.indexOf('secrets.CLOUDFLARE_API_TOKEN'));
 });
 test('root receipt is per Worker, exact owner and all traffic; inactive receipt cannot authorize',()=>{

@@ -51,18 +51,16 @@ Linux, then checks genuine action/RSC, API, loading/success/error UI, fonts,
 redirects, status/MIME cases, real60s header/body cleanup and unchanged sealed
 Worker/assets bytes. A green local unit suite is not full integration acceptance.
 
-Verification CI has read-only repository permission and no application/provider
-secrets, deployment step, content/artifact upload, writable cache, or preview
-creation. Live SGPC/Vercel scraper hosts are blocked; only synthetic loopback
-fixtures feed tests. The original source is read from frozen commit
+Verification CI has read-only repository permission and runs against synthetic
+loopback fixtures. The original source is read from frozen commit
 `9a83971250ef7bf020684c8a7beaa2af5d5590c0`, without initializing the inactive
 submodule. Original reference packages install without lifecycle scripts.
 The active migration omits that unused gitlink because its missing `.gitmodules`
 URL breaks checkout's temporary-auth cleanup. Its frozen original tree pointer
 and provenance remain unchanged; no submodule is initialized or given a URL.
 
-The Wrangler configuration disables workers.dev and preview URLs. No account,
-Worker deployment, DNS change or consumer cutover is performed by this branch.
-Those steps require the later exact-artifact/account acceptance gates. Full local
-builds also require a fresh3072MiB disk reservation; CI is the current full-build
-verification path. See `docs/cloudflare-verification.md` for evidence and limits.
+Only a gated main push can deploy the sealed artifact to the existing public
+Cloudflare production Worker. Version URLs remain disabled. See
+[`docs/cloudflare-verification.md`](docs/cloudflare-verification.md) for the
+verification workflow and [`docs/public-release.md`](docs/public-release.md) for
+the production gate, live checks and rollback.
