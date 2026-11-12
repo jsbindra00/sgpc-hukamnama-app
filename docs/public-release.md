@@ -16,8 +16,12 @@ verification steps without the secret. Only a push to this repository's main
 branch can promote an accepted version. Turning the variable off stops
 automatic promotion.
 
-`vercel.json` disables duplicate Vercel builds on the
-`codex/cloudflare-migration` review branch. Other branches keep Vercel's
+`vercel.json` disables automatic Vercel deployments on `main` and the
+`codex/cloudflare-migration` review branch. Preserve the Vercel fallback at
+`sgpc-hukamnama-scraper.vercel.app`, which serves the Chromium scraper from
+`9a83971250ef7bf020684c8a7beaa2af5d5590c0` on deployment
+`dpl_BFzCbtq6ZV43mrvPMQNWJgVHBGd8`. Verify the alias still resolves to that
+deployment after merging the Cloudflare changes. Other branches keep Vercel's
 default Git deployment behavior.
 
 The workflow runs the full original and candidate acceptance suite and binds
